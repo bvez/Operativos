@@ -7,10 +7,10 @@
 
 int main(){
 	int fd[2];
-	double a[] = {'b','g','s'};
+	char a[] = {'b','g','s'};
 	pipe(fd);
 	
-	printf("%d\n", sizeof(a));
+	//printf("%d\n", sizeof(a));
 
 	/*printf("Llena la tuberia\n");
 	write(fd[1],a,3*sizeof(int));
@@ -49,8 +49,12 @@ int main(){
 
 
 
-	/*write(STDIN_FILENO,a,3*sizeof(char));
-	char buffAux[3];
+	if(write(STDIN_FILENO,a,3*sizeof(char))>=0)
+		printf("Imprime correctamente\n");
+	else printf("Error\n");
+	write(STDIN_FILENO,"\n",1);
+	write(STDIN_FILENO,"\n",1);
+	/*char buffAux[3];
 	printf("%d\n",read(STDOUT_FILENO,buffAux,3*sizeof(char)));
 
 	for (int i = 0; i < 3; i++)
