@@ -9,13 +9,15 @@
 int main(int argc, char const *argv[])
 {
 	int fd;
-	fd = open("./hola.txt",O_RDONLY);
+	fd = open("./hola.txt",O_WRONLY);
 	printf("id padre: %d\n", getpid());
 	//int pid = fork();
 	char buff[10];
 	char buff2[5]="hola";
 	if(write(fd,buff2,4)>0)
 		printf("Imprimio correctamente\n");
+	if(read(fd,buff,4)>0)
+		printf("Leyo correctamente\n");
 	close(fd);
 	/*if(pid){
 		int st;
