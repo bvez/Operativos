@@ -38,24 +38,25 @@ class Queue:
         self._qtail = node
         self._count += 1
 
-	def enqueueSJF(self,pid,burst,turnaround=0):
-		node = _QueueNode(pid,burst,turnaround)
-		if self.isEmpty():
-			self._qhead = node
-		else:
-			ptr = self._qhead
-			ptrPrev = None
-			while (ptr is not None) and (ptr.burst < node.burst):
-				ptrPrev = ptr
-				ptr = ptr.next
-			
-			ptr = ptrPrev
-			
-			if ptr is None:
-				node.next = ptr
-			else:
-				node.next = ptr.next
-				ptr.next = node
+    def enqueueSJF(self,pid,burst,turnaround=0):
+        node = _QueueNode(pid,burst,turnaround)
+        if self.isEmpty():
+            self._qhead = node
+        else:
+            ptr = self._qhead
+            ptrPrev = None
+            while (ptr is not None) and (ptr.burst <= node.burst):
+                ptrPrev = ptr
+                ptr = ptr.next
+            
+            ptr = ptrPrev
+                
+            if ptr is None:
+                node.next = self._qhead
+                self._qhead = node
+            else:
+                node.next = ptr.next
+                ptr.next = node
 			
 	
     # Removes and returns the first item in the queue.
@@ -121,18 +122,18 @@ class Queue:
             ptr = ptr.next
         q.printStatistics()    
 	
-	def schedulingSJF(self):
-		q = Queue()
-		t = 0
-		ptr = self._qhead
-		while ptr is not None:
-			t+=ptr.burst
-			ptr.turnaround = tell
-			ptr.burst = 0
-			q.enqueue(ptr.pid,ptr.burst,ptr.turnaround)
-			self.dequeue()
-			ptr = ptr.next
-		q.printStatistics()
+    def schedulingSJF(self):
+        q = Queue()
+        t = 0
+        ptr = self._qhead
+        while ptr is not None:
+            t+=ptr.burst
+            ptr.turnaround = t
+            ptr.burst = 0
+            q.enqueue(ptr.pid,ptr.burst,ptr.turnaround)
+            self.dequeue()
+            ptr = ptr.next
+        q.printStatistics()
 			
     def __iter__(self):
         return QueueIterator(self._qhead) 
@@ -193,13 +194,14 @@ def main():
     print('All tests are ok')
     """
 	
-	q.enqueueSJF(1,3)
+    q.enqueueSJF(1,3)
     q.enqueueSJF(2,6)
     q.enqueueSJF(3,4)
     q.enqueueSJF(4,5)
     q.enqueueSJF(5,2)
+    q.enqueueSJF(6,4)
 	
-	q.schedulingSJF()
+    q.schedulingSJF()
 	
 if __name__ == "__main__":
     main()
