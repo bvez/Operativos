@@ -77,7 +77,29 @@ class Queue:
             else:
                 node.next = ptr.next
                 ptr.next = node
-	
+
+
+    def enqueueArrive(self,pid,burst,arrival=0,turnaround=0):
+        node = _QueueNodeArrival(pid,burst,turnaround,arrival)
+        if self.isEmpty():
+            self._qhead = node
+        else:
+            ptr = self._qhead
+            ptrPrev = None
+            while(ptr is not None) and (ptr.arriveTime <= node.arriveTime):
+                ptrPrev = ptr
+                ptr = ptr.next
+
+            ptr = ptrPrev
+
+            if ptr is None:
+                node.next = self._qhead
+                self._qhead = node
+            else:
+                node.next = ptr.next
+                ptr.next = node
+
+        
     # Removes and returns the first item in the queue.
     def dequeue(self):
         assert not self.isEmpty(), "Cannot dequeue from an empty queue."
@@ -128,6 +150,31 @@ class Queue:
             ptr = ptr.next        
         q.printStatistics()    
 
+    def schedulingRRArrive(self, quantum):
+        q = Queue()
+        t = 0
+        ptr = self._qhead
+        while ptr is not None:
+            if ptr.arriveTime <= t:
+                if ptr.burst <= quantum:
+                    t += ptr.burst
+                    ptr.turnaround += t - ptr.arriveTime
+                    ptr.burst = 0
+                    q.enqueue(ptr.pid,ptr.burst,ptr.turnaround)
+                    #print("A")
+                    self.dequeue()
+                else:
+                    t += quantum
+                    ptr.turnaround += t - ptr.arriveTime
+                    ptr.burst -= quantum
+                    self.enqueueArrive(ptr.pid,ptr.burst,t,ptr.turnaround)
+                    self.dequeue()
+                ptr = ptr.next
+            else:
+                t+=1
+
+        q.printStatistics()
+    
     def schedulingFCFS(self):
         q = Queue()
         t = 0
@@ -140,7 +187,23 @@ class Queue:
             self.dequeue()
             ptr = ptr.next
         q.printStatistics()    
-	
+
+    def schedulingFCFSArrive(self):
+        q = Queue()
+        t = 0
+        ptr = self._qhead
+        while ptr is not None:
+            if ptr.arriveTime<=t :
+                t += ptr.burst
+                ptr.turnaround = t - ptr.arriveTime
+                ptr.burst = 0
+                q.enqueue(ptr.pid,ptr.burst,ptr.turnaround)
+                self.dequeue()
+                ptr = ptr.next
+            else:
+                t+=1
+        q.printStatistics()
+    
     def schedulingSJF(self):
         q = Queue()
         t = 0
@@ -202,14 +265,22 @@ class _QueuePriorityNode:
         self.turnaround = turnaround
         self.next = None
 
+class _QueueNodeArrival:
+    def __init__(self,pid,burst=0,turnaround=0,arrive=0):
+        self.pid=pid
+        self.burst = burst
+        self.turnaround = turnaround
+        self.arriveTime = arrive
+        self.next = None
+
 def main():
     q = Queue()
    
-    """q.enqueue(1,3)
-    q.enqueue(2,6)
-    q.enqueue(3,4)
-    q.enqueue(4,5)
-    q.enqueue(5,2)"""
+    #q.enqueue(1,3)
+    #q.enqueue(2,6)
+    #q.enqueue(3,4)
+    #q.enqueue(4,5)
+    #q.enqueue(5,2)
 	
     
     #q.schedulingRR(4) 
@@ -243,13 +314,23 @@ def main():
     
     q.schedulingSJF()"""
 
-    q.enqueuePriority(2,1,3)
-    q.enqueuePriority(4,2,6)
+    """q.enqueuePriority(1,1,3)
+    q.enqueuePriority(1,2,6)
     q.enqueuePriority(1,3,4)
-    q.enqueuePriority(5,4,5)
-    q.enqueuePriority(3,5,2)
+    q.enqueuePriority(1,4,5)
+    q.enqueuePriority(1,5,2)
 
-    q.schedulingPriority()
+    q.schedulingPriority()"""
+
+    q.enqueueArrive(1,3,0)
+    q.enqueueArrive(2,6,5)
+    q.enqueueArrive(3,4,4)
+    q.enqueueArrive(4,5,2)
+    q.enqueueArrive(5,2,6)
+
+
+    #q.schedulingFCFSArrive()
+    q.schedulingRRArrive(2)
 	
 if __name__ == "__main__":
     main()
