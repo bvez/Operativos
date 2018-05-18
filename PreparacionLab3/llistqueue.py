@@ -38,6 +38,26 @@ class Queue:
         self._qtail = node
         self._count += 1
 
+    def enqueueArrive(self,pid,burst,arrival=0,turnaround=0):
+        node = _QueueNodeArrival(pid,burst,turnaround,arrival)
+        if self.isEmpty():
+            self._qhead = node
+        else:
+            ptr = self._qhead
+            ptrPrev = None
+            while(ptr is not None) and (ptr.arriveTime <= node.arriveTime):
+                ptrPrev = ptr
+                ptr = ptr.next
+
+            ptr = ptrPrev
+
+            if ptr is None:
+                node.next = self._qhead
+                self._qhead = node
+            else:
+                node.next = ptr.next
+                ptr.next = node
+
     def enqueueSJF(self,pid,burst,turnaround=0):
         node = _QueueNode(pid,burst,turnaround)
         if self.isEmpty():
@@ -51,6 +71,26 @@ class Queue:
             
             ptr = ptrPrev
                 
+            if ptr is None:
+                node.next = self._qhead
+                self._qhead = node
+            else:
+                node.next = ptr.next
+                ptr.next = node
+
+    def enqueueSJFArrive(self,pid,burst,arrival=0,turnaround=0):
+        node = _QueueNodeArrival(pid,burst,turnarround,arrival)
+        if self.isEmpty():
+            self._qhead = node
+        else:
+            ptr = self._qhead
+            ptrPrev = None
+            while (ptr is not None) and (ptr.arriveTime <= arrival) and (ptr.burst <= node.burst):
+                ptrPrev = ptr
+                ptr = ptr.next
+
+            ptr = ptrPrev
+
             if ptr is None:
                 node.next = self._qhead
                 self._qhead = node
@@ -78,15 +118,14 @@ class Queue:
                 node.next = ptr.next
                 ptr.next = node
 
-
-    def enqueueArrive(self,pid,burst,arrival=0,turnaround=0):
-        node = _QueueNodeArrival(pid,burst,turnaround,arrival)
+    def enqueuePriorityArrive(self,priority,pid,burst,arrival=0,turnaround=0):
+        node = _QueuePriorityNodeArrival(priority,pid,burst,arrival,turnaround)
         if self.isEmpty():
             self._qhead = node
         else:
             ptr = self._qhead
             ptrPrev = None
-            while(ptr is not None) and (ptr.arriveTime <= node.arriveTime):
+            while (ptr is not None) and (ptr.arriveTime <= arrival) and (ptr.priority >= node.priority) :
                 ptrPrev = ptr
                 ptr = ptr.next
 
@@ -98,7 +137,6 @@ class Queue:
             else:
                 node.next = ptr.next
                 ptr.next = node
-
         
     # Removes and returns the first item in the queue.
     def dequeue(self):
@@ -161,7 +199,6 @@ class Queue:
                     ptr.turnaround += t - ptr.arriveTime
                     ptr.burst = 0
                     q.enqueue(ptr.pid,ptr.burst,ptr.turnaround)
-                    #print("A")
                     self.dequeue()
                 else:
                     t += quantum
@@ -171,6 +208,7 @@ class Queue:
                     self.dequeue()
                 ptr = ptr.next
             else:
+                print("Idle")
                 t+=1
 
         q.printStatistics()
@@ -201,6 +239,7 @@ class Queue:
                 self.dequeue()
                 ptr = ptr.next
             else:
+                print("Idle")
                 t+=1
         q.printStatistics()
     
@@ -217,6 +256,23 @@ class Queue:
             ptr = ptr.next
         q.printStatistics()
 
+    def schedulingSJFArrive(self):
+        q = Queue()
+        t = 0
+        ptr = self._qhead
+        while ptr is not None:
+            if ptr.arriveTime<=t:
+                t += ptr.burst
+                ptr.turnaround = t
+                ptr.burst = 0
+                q.enqueue(ptr.pid,ptr.burst,ptr.turnaround)
+                self.dequeue()
+                ptr = ptr.next
+            else:
+                print("Idle")
+                t+=1
+        q.printStatistics()
+
     def schedulingPriority(self):
         q = Queue()
         t = 0
@@ -228,6 +284,26 @@ class Queue:
             q.enqueue(ptr.pid,ptr.burst,ptr.turnaround)
             self.dequeue()
             ptr = ptr.next
+        q.printStatistics()
+
+    def schedulingPriorityArrive(self):
+        q = Queue()
+        t = 0
+        ptr = self._qhead
+        while ptr is not None:
+            if ptr.arriveTime <= t:
+                t += 1
+                ptr.turnaround += t-arriveTime
+                ptr.burst -= 1
+                if(ptr.burst<=0):
+                    q.enqueue(ptr.pid,ptr.burst,ptr.turnaround)
+                    ptr = ptr.next
+                elif(ptr.next is not None) and (ptr.next.priority>ptr.priority) and (ptr.next.arriveTime<=t):
+                    self.enqueuePriorityArrive(ptr.priority,ptr.pid,ptr.burst,t,ptr.turnaround)
+                    ptr = ptr.next
+            else:
+                print("Idle")
+                t+=1
         q.printStatistics()
 
     def __iter__(self):
@@ -273,6 +349,15 @@ class _QueueNodeArrival:
         self.arriveTime = arrive
         self.next = None
 
+class _QueuePriorityNode:
+    def __init__(self,priority,pid,burst=0,arrival=0,turnaround=0):
+        self.priority = priority
+        self.pid = pid
+        self.burst=burst
+        self.arrival=arrival
+        self.turnaround = turnaround
+        self.next = None
+        
 def main():
     q = Queue()
    
